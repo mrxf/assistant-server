@@ -1,0 +1,121 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Player {
+  id           String   @id
+  nickname     String   @default("")
+  birthday     String?
+  customFields String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DialogueEntry {
+  id         String   @id @default(uuid())
+  playerId   String
+  role       String
+  content    String
+  expression String?
+  emotion    String?
+  turnIndex  Int
+  createdAt  DateTime @default(now())
+
+  @@index([playerId, createdAt])
+}
+
+model SemanticFact {
+  id         String   @id @default(uuid())
+  playerId   String
+  category   String
+  key        String
+  value      String
+  importance Float    @default(0.5)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([playerId, category, key])
+}
+
+model EpisodeRecord {
+  id          String   @id @default(uuid())
+  playerId    String
+  summary     String
+  importance  Float    @default(0.5)
+  emotionSnap String?
+  actors      String   @default("[]")
+  createdAt   DateTime @default(now())
+
+  @@index([playerId, createdAt])
+}
+
+model EmotionState {
+  id            String   @id
+  baseMoodState String
+  baseline      String
+  updatedAt     DateTime @updatedAt
+}
+
+model RelationshipState {
+  id               String   @id
+  trustLevel       Float    @default(30)
+  cooperationLevel Float    @default(50)
+  affinity         Float    @default(20)
+  speakingStyle    String   @default("温和有礼，略带好奇")
+  overlayData      String   @default("{}")
+  updatedAt        DateTime @updatedAt
+}
+
+model ProactiveMessage {
+  id          String   @id @default(uuid())
+  playerId    String
+  content     String
+  expression  String?
+  emotion     String?
+  triggeredBy String
+  // 触发该消息的事件原始信息（来自 POST /player/:id/events 上报）。
+  // triggeredBy 仅存事件 type；下面两列保留事件的描述文本与元数据，供前端渲染消息时还原上下文。
+  triggerText     String?
+  triggerMetadata String? // JSON 字符串
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([playerId, isRead, createdAt])
+}
+
+model MemoryFlushCursor {
+  id            String   @id
+  lastTurnIndex Int      @default(0)
+  updatedAt     DateTime @updatedAt
+}
+
+// ── Channel 接入 ──────────────────────────────────────────────────────────────
+
+// @innerlife/channel 的 AccountStorage 后端：通用、channel 无关，只存不透明凭据。
+// data 为 JSON 字符串（与本库 customFields/triggerMetadata 的存法一致；SQLite 下用 String）。
+model ChannelAccount {
+  channelId String
+  accountId String
+  data      String // JSON: { token, baseUrl, userId, contextTokens }
+  updatedAt DateTime @updatedAt
+
+  @@id([channelId, accountId])
+}
+
+// sanguo 领域：渠道身份（微信 openid 等）↔ 玩家。resolveAgent 据此把入站消息归到 playerId。
+model ChannelBinding {
+  channelId    String
+  peerId       String // 微信 ilink_user_id
+  playerId     String
+  accountId    String // 该 peer 走哪个 bot 账号（发送 / 反查用）
+  lastActiveAt DateTime? // 入站时更新；主动推送挑「最近活跃」的绑定
+  createdAt    DateTime  @default(now())
+
+  @@id([channelId, peerId])
+  @@index([playerId])
+}

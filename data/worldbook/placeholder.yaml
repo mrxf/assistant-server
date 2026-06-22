@@ -1,0 +1,15 @@
+# 世界书（worldbook）占位文件。
+#
+# 加载机制：WorldBookLoaderService 会读取本目录下所有 .yaml/.yml 文件，
+# 把各文件的 entries 合并后注入 Agent，按对话内容做关键词召回。
+#
+# 暂无内容。后续如需让小满掌握特定领域知识（如育儿知识库、生活常识库），
+# 新建 yaml 文件并按下面的结构填入 entries 即可，无需改代码：
+#
+# entries:
+#   - id: newborn-sleep
+#     name: 新生儿睡眠
+#     keywords: [睡眠, 哄睡, 作息]
+#     content: |
+#       新生儿每天睡眠……
+entries: []
