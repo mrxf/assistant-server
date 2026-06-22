@@ -45,13 +45,25 @@ const DEEPSEEK_CAPS: ModelCapabilities = {
 };
 
 /**
- * 主对话模型（gpt-5.5）的能力。与 DEEPSEEK_CAPS 的唯一区别是显式放开 `image`
- * 输入模态——否则 `OpenAIProvider.validateModalitySupport` 会因 supportedInputs
- * 仅含 'text' 而拒绝微信图片（多模态消息）。上下文窗口沿用既有设置，不改预算行为。
+ * 主对话单次回复的输出上限（completion）。innerlife 的 Runner 调用 `chatWithSchema`
+ * 时不传 maxTokens，provider 会回退到写死的 `DEFAULT_MAX_TOKENS=4096`——长答案 + 思维链
+ * 极易在 4096 处被 `finish_reason: length` 截断，进而 JSON 解析失败、dialogue 为空被静默丢弃。
+ * 这里通过 provider 的 `extraBody.max_tokens` 覆盖该默认值（extraBody 在请求体里最后展开，
+ * 优先级高于方法内设的 max_tokens），把输出放大到与 256k 模型相称的冗余空间。
+ */
+const MAIN_MAX_OUTPUT_TOKENS = 32_000;
+
+/**
+ * 主对话模型（gpt-5.5，256k 上下文）的能力。除显式放开 `image` 输入模态外
+ * （否则 `OpenAIProvider.validateModalitySupport` 会因 supportedInputs 仅含
+ * 'text' 而拒绝微信图片），这里按模型真实的 256k 窗口声明：
+ * `TokenBudget.fromCapabilities` 会据此把 persona / 对话历史 / 记忆等所有槽位
+ * 按比例放大（available = contextWindow − maxOutputTokens − 2000），从根上避免
+ * 长对话上下文被预算裁掉。
  */
 const MAIN_CAPS: ModelCapabilities = {
-  contextWindow: 128_000,
-  maxOutputTokens: 8_192,
+  contextWindow: 256_000,
+  maxOutputTokens: MAIN_MAX_OUTPUT_TOKENS,
   supportedInputs: ['text', 'image'],
 };
 
@@ -59,8 +71,8 @@ const MAIN_CAPS: ModelCapabilities = {
  * 注入 prompt 的逐字对话历史上限（DialogueHistory 自身的预算，独立于 Composer 槽位预算）。
  * 默认仅 2000 tokens / 50 条，多轮长对话会被提前截断；放大以保留更完整的上下文。
  */
-const DIALOGUE_HISTORY_TOKEN_BUDGET = 16_000;
-const DIALOGUE_HISTORY_MAX_PROMPT_ENTRIES = 200;
+const DIALOGUE_HISTORY_TOKEN_BUDGET = 64_000;
+const DIALOGUE_HISTORY_MAX_PROMPT_ENTRIES = 1_000;
 
 @Injectable()
 export class AgentPoolService implements OnModuleInit {
@@ -129,8 +141,8 @@ export class AgentPoolService implements OnModuleInit {
       enableCognitionSkill: false,
       enableActiveMemory: false,
       enableEventBroker: false,
-      worldBookTopK: 8,
-      worldBookRetentionTurns: 5,
+      worldBookTopK: 24,
+      worldBookRetentionTurns: 12,
       tickOptions: { maxTurnsPerTick: 6 },
     };
 
@@ -293,7 +305,8 @@ export class AgentPoolService implements OnModuleInit {
       baseURL: config.baseUrl,
       model: config.model,
       capabilities: MAIN_CAPS,
-      extraBody: this.resolveThinkingExtraBody(),
+      // max_tokens 覆盖包内写死的 4096：extraBody 在 completion() 里最后展开，优先级最高。
+      extraBody: { ...this.resolveThinkingExtraBody(), max_tokens: MAIN_MAX_OUTPUT_TOKENS },
       defaultHeaders: { 'User-Agent': 'assistant-server/0.1.0' },
     });
 
