@@ -1,0 +1,32 @@
+package.json
+  a5efb514a3f5827b 22-25
+src/agent/agent-pool.service.ts
+  a5efb514a3f5827b 48-62,65-66,74-75,144-145,308-309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "e722e49f2be81096deba2a9287c54955195a166c",
+  "prompts": {
+    "a5efb514a3f5827b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "43e74729-465d-4c0a-b7aa-feaeadfd86b9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "zhangshuyuan",
+      "messages": [],
+      "total_additions": 27,
+      "total_deletions": 14,
+      "accepted_lines": 27,
+      "overriden_lines": 0,
+      "messages_url": "http://172.20.103.50:8002/cas/e217c2c984d137384507d2df437b61c11d996396918f79cc2f9a5110dd6ef170",
+      "token_usage": {
+        "input_tokens": 7243,
+        "output_tokens": 31954,
+        "cache_creation_input_tokens": 61093,
+        "cache_read_input_tokens": 2495748
+      }
+    }
+  }
+}
