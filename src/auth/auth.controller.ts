@@ -1,5 +1,5 @@
 import { Controller, Post, Get, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { InviteService } from './invite.service';
 import { Public, AdminOnly, CurrentPlayer } from './decorators';
@@ -41,6 +41,7 @@ export class AuthController {
   }
 
   @AdminOnly()
+  @ApiBearerAuth()
   @Post('invite')
   @ApiOperation({ summary: '生成邀请码（管理员）' })
   async createInvite(
@@ -51,6 +52,7 @@ export class AuthController {
   }
 
   @AdminOnly()
+  @ApiBearerAuth()
   @Get('invites')
   @ApiOperation({ summary: '查看所有邀请码（管理员）' })
   async listInvites() {
