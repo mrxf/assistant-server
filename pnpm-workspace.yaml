@@ -1,0 +1,14 @@
+# pnpm 11 起 minimumReleaseAge 默认 1440 分钟（1 天）：拒绝安装发布不足 1 天的包，
+# 防供应链投毒。自己发布的私有包不需要冷却，单独豁免；第三方包仍保留保护。
+minimumReleaseAgeExclude:
+  - '@innerlife/*'
+
+# pnpm 11 默认禁止依赖运行安装脚本（strictDepBuilds），需在此逐个表态。
+# v11 已用 allowBuilds（map：包名 -> true/false）取代旧的 onlyBuiltDependencies（数组）。
+# bcrypt 要编译原生模块、prisma 要装引擎，放行；@scarf/scarf 是遥测，显式禁止。
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
+  bcrypt: true
+  '@scarf/scarf': false
