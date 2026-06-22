@@ -1,28 +1,25 @@
-import { Controller, Get, Put, Post, Delete, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Put, Delete, Body, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PlayerService } from './player.service';
-import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { AdminOnly } from '../auth/decorators';
 
+@ApiBearerAuth()
 @ApiTags('Players')
 @Controller()
 export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
-  @Post('players')
-  @ApiOperation({ summary: '创建新 Player' })
-  async create(@Body() dto: CreatePlayerDto) {
-    return this.playerService.create(dto.id, dto.nickname);
-  }
-
+  @AdminOnly()
   @Get('players')
-  @ApiOperation({ summary: '列出所有 Player' })
+  @ApiOperation({ summary: '列出所有 Player（管理员）' })
   async list() {
     return this.playerService.list();
   }
 
+  @AdminOnly()
   @Delete('players/:playerId')
-  @ApiOperation({ summary: '删除 Player 及其所有数据' })
+  @ApiOperation({ summary: '删除 Player 及其所有数据（管理员）' })
   async delete(@Param('playerId') playerId: string) {
     return this.playerService.delete(playerId);
   }

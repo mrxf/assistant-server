@@ -1,10 +1,11 @@
 import { Controller, Post, Get, Body, Query, Param, Res } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { ChatHistoryQueryDto } from './dto/chat-history.dto';
 
+@ApiBearerAuth()
 @ApiTags('Chat')
 @Controller('player/:playerId/chat')
 export class ChatController {

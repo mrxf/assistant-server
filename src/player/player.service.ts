@@ -1,7 +1,6 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AgentPoolService } from '../agent/agent-pool.service';
-import { FIRST_GREETING } from '../agent/agent.constants';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 export interface PlayerProfileResponse {
@@ -16,55 +15,12 @@ export interface PlayerListItem {
   createdAt: string;
 }
 
-export interface CreatePlayerResponse {
-  id: string;
-  nickname: string;
-  birthday: string | null;
-  customFields: Record<string, unknown>;
-  greeting: string;
-  createdAt: string;
-}
-
 @Injectable()
 export class PlayerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly agentPool: AgentPoolService,
   ) {}
-
-  async create(id: string, nickname?: string): Promise<CreatePlayerResponse> {
-    const existing = await this.prisma.player.findUnique({ where: { id } });
-    if (existing) {
-      throw new ConflictException(`Player "${id}" already exists`);
-    }
-
-    const player = await this.prisma.player.create({
-      data: {
-        id,
-        nickname: nickname ?? '',
-      },
-    });
-
-    await this.agentPool.createAgent(id);
-
-    await this.prisma.dialogueEntry.create({
-      data: {
-        playerId: id,
-        role: 'outgoing',
-        content: FIRST_GREETING,
-        turnIndex: 0,
-      },
-    });
-
-    return {
-      id: player.id,
-      nickname: player.nickname,
-      birthday: player.birthday,
-      customFields: JSON.parse(player.customFields),
-      greeting: FIRST_GREETING,
-      createdAt: player.createdAt.toISOString(),
-    };
-  }
 
   async list(): Promise<{ data: PlayerListItem[] }> {
     const players = await this.prisma.player.findMany({

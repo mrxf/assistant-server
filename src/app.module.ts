@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 import { AgentModule } from './agent/agent.module';
 import { ChatModule } from './chat/chat.module';
 import { EventsModule } from './events/events.module';
@@ -12,16 +13,18 @@ import { DebugModule } from './debug/debug.module';
 import { WechatModule } from './wechat/wechat.module';
 import appConfig from './config/app.config';
 import agentConfig from './config/agent.config';
+import authConfig from './config/auth.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [appConfig, agentConfig],
+      load: [appConfig, agentConfig, authConfig],
     }),
     CommonModule,
     PrismaModule,
+    AuthModule,
     AgentModule,
     ChatModule,
     EventsModule,

@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Param, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { MessagesService } from './messages.service';
 import { ListMessagesQueryDto } from './dto/list-messages.dto';
 
+@ApiBearerAuth()
 @ApiTags('Messages')
 @Controller('player/:playerId/messages')
 export class MessagesController {

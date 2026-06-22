@@ -1,8 +1,9 @@
 import { Controller, Post, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { EventsService } from './events.service';
 import { ReportEventDto } from './dto/report-event.dto';
 
+@ApiBearerAuth()
 @ApiTags('Events')
 @Controller('player/:playerId/events')
 export class EventsController {

@@ -1,19 +1,11 @@
 import { Controller, Delete, Param, Post, Res } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ChannelHost } from '@innerlife/channel';
 import { CHANNEL_ID } from '@innerlife/channel-weixin';
 import { ChannelBindingService } from './channel-binding.service';
 
-/**
- * WeChat binding for an (already authenticated) player. The QR scan is initiated
- * from the player's session, so on confirm we know both the WeChat identity
- * (`userId`) and the playerId — and bind them directly. See the integration plan.
- *
- * NOTE: playerId comes from the route to match this codebase's convention; with
- * real auth it should be derived from the session to prevent binding to another
- * player's account.
- */
+@ApiBearerAuth()
 @ApiTags('WeChat')
 @Controller('player/:playerId/wechat')
 export class WechatBindController {

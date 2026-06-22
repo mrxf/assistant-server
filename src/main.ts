@@ -21,6 +21,7 @@ async function bootstrap() {
     .setTitle('小满 · 生活助理')
     .setDescription('小满 生活助理 AI 服务端 API')
     .setVersion('0.1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

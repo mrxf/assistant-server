@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DebugService } from './debug.service';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -7,7 +7,10 @@ import {
   DEFAULT_THINKING_MODE,
   type ThinkingMode,
 } from '../common/llm-thinking';
+import { AdminOnly } from '../auth/decorators';
 
+@ApiBearerAuth()
+@AdminOnly()
 @ApiTags('Debug')
 @Controller()
 export class DebugController {
