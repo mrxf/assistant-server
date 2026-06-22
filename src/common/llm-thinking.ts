@@ -1,32 +1,49 @@
 /**
- * DeepSeek 思考模式（thinking）开关工具。
+ * DeepSeek 思考模式（thinking）档位工具。
  *
- * DeepSeek 默认开启思考模式：回答前先输出一段思维链（reasoning_content）以提升准确性，
- * 但更慢、更贵。对话类 NPC 通常要的是「快」，因此本项目默认关闭；配置方可通过环境变量
- * `AGENT_THINKING=enabled` 重新打开。
+ * DeepSeek 支持在请求体里用 `thinking: { type: 'enabled' | 'disabled' }` 开关思考链；
+ * 部分接口/模型还支持 OpenAI 风格的 `reasoning_effort: 'low' | 'medium' | 'high'` 控制思考强度。
+ * 本项目把两者合成一个「档位」概念：
+ *   - `disabled`：完全关闭思考，最快、最省。
+ *   - `low` / `medium` / `high`：开启思考，并把强度透传给支持 reasoning_effort 的接口。
  *
- * 开关通过 OpenAI 格式的请求体字段 `thinking: { type: 'disabled' | 'enabled' }` 实现，
- * 由 `OpenAIProvider` 的 `extraBody` 透传进 `chat.completions` 请求体
- * （等价于 DeepSeek 文档中 Python SDK 的 `extra_body`）。
+ * 非 disabled 时，同时下发 `thinking.type=enabled` 与 `reasoning_effort=<档位>`，
+ * 谁认用谁，兼容性最好（由 `OpenAIProvider.extraBody` 透传进 chat.completions 请求体）。
  */
 
-/** 思考模式开关值（对应 DeepSeek 的 `thinking.type`）。 */
-export type ThinkingMode = 'enabled' | 'disabled';
+/** 思考档位。disabled 关闭；low/medium/high 为开启后的思考强度。 */
+export type ThinkingMode = 'disabled' | 'low' | 'medium' | 'high';
 
-/** 默认关闭思考模式，换取更快、更省的回复。 */
-export const DEFAULT_THINKING_MODE: ThinkingMode = 'disabled';
+/** 默认 medium：在准确性与速度/成本之间取平衡。 */
+export const DEFAULT_THINKING_MODE: ThinkingMode = 'medium';
+
+const VALID_LEVELS: ReadonlySet<string> = new Set(['low', 'medium', 'high']);
+const DISABLED_ALIASES: ReadonlySet<string> = new Set(['disabled', 'off', 'none', 'false']);
 
 /**
- * 解析环境变量为思考模式开关：仅当显式设为 `enabled`（忽略大小写与首尾空白）时开启，
- * 其余情况（含未设置）一律关闭。
+ * 解析环境变量为思考档位：
+ *   - `low` / `medium` / `high`（忽略大小写与首尾空白）→ 对应档位
+ *   - `disabled` / `off` / `none` / `false` → 关闭
+ *   - 其余情况（含未设置）→ 默认 medium
  */
 export function resolveThinkingMode(raw: string | undefined): ThinkingMode {
-  return raw?.trim().toLowerCase() === 'enabled' ? 'enabled' : 'disabled';
+  const value = raw?.trim().toLowerCase();
+  if (!value) return DEFAULT_THINKING_MODE;
+  if (DISABLED_ALIASES.has(value)) return 'disabled';
+  if (VALID_LEVELS.has(value)) return value as ThinkingMode;
+  return DEFAULT_THINKING_MODE;
 }
 
 /**
- * 生成注入 `OpenAIProvider.extraBody` 的请求体片段，用于控制 DeepSeek 思考模式开关。
+ * 生成注入 `OpenAIProvider.extraBody` 的请求体片段。
+ * disabled → 仅关闭思考；否则同时下发 thinking 开关与 reasoning_effort 档位。
  */
 export function thinkingExtraBody(mode: ThinkingMode): Record<string, unknown> {
-  return { thinking: { type: mode } };
+  if (mode === 'disabled') {
+    return { thinking: { type: 'disabled' } };
+  }
+  return {
+    thinking: { type: 'enabled' },
+    reasoning_effort: mode,
+  };
 }
