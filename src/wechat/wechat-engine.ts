@@ -9,7 +9,12 @@ export interface WeixinEngineDeps {
   runner: AgentRunnerService;
   binding: ChannelBindingService;
   concurrency?: number;
+  /** Normal sliding quiet-period (ms). Default 2500 for WeChat. */
   debounceMs?: number;
+  /** Quiet-period when the latest inbound is image-only (ms). Default 5000:
+   *  WeChat can't send image+text together, so a caption-less photo usually
+   *  means the user is still about to type their question. */
+  imageOnlyDebounceMs?: number;
 }
 
 /**
@@ -38,7 +43,8 @@ export function buildWeixinEngine(deps: WeixinEngineDeps): InnerlifeEngine {
       return { agent: deps.pool.getAgent(binding.playerId), source: binding.playerId };
     },
     ...(deps.concurrency !== undefined ? { concurrency: deps.concurrency } : {}),
-    ...(deps.debounceMs !== undefined ? { debounceMs: deps.debounceMs } : {}),
+    debounceMs: deps.debounceMs ?? 2500,
+    imageOnlyDebounceMs: deps.imageOnlyDebounceMs ?? 5000,
     logger: {
       warn: (msg, meta) => log.warn(meta !== undefined ? `${msg} ${safe(meta)}` : msg),
       error: (msg, meta) => log.error(meta !== undefined ? `${msg} ${safe(meta)}` : msg),
