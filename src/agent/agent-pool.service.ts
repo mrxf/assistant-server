@@ -45,6 +45,17 @@ const DEEPSEEK_CAPS: ModelCapabilities = {
 };
 
 /**
+ * 主对话模型（gpt-5.5）的能力。与 DEEPSEEK_CAPS 的唯一区别是显式放开 `image`
+ * 输入模态——否则 `OpenAIProvider.validateModalitySupport` 会因 supportedInputs
+ * 仅含 'text' 而拒绝微信图片（多模态消息）。上下文窗口沿用既有设置，不改预算行为。
+ */
+const MAIN_CAPS: ModelCapabilities = {
+  contextWindow: 128_000,
+  maxOutputTokens: 8_192,
+  supportedInputs: ['text', 'image'],
+};
+
+/**
  * 注入 prompt 的逐字对话历史上限（DialogueHistory 自身的预算，独立于 Composer 槽位预算）。
  * 默认仅 2000 tokens / 50 条，多轮长对话会被提前截断；放大以保留更完整的上下文。
  */
@@ -281,7 +292,7 @@ export class AgentPoolService implements OnModuleInit {
       apiKey: config.apiKey,
       baseURL: config.baseUrl,
       model: config.model,
-      capabilities: DEEPSEEK_CAPS,
+      capabilities: MAIN_CAPS,
       extraBody: this.resolveThinkingExtraBody(),
       defaultHeaders: { 'User-Agent': 'assistant-server/0.1.0' },
     });
