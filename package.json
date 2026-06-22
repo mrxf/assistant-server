@@ -18,11 +18,11 @@
     "prisma:seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@innerlife/agent": "^0.1.1",
+    "@innerlife/agent": "^0.1.2",
     "@innerlife/channel": "^0.0.1",
-    "@innerlife/channel-engine-adapter": "^0.0.1",
+    "@innerlife/channel-engine-adapter": "^0.0.2",
     "@innerlife/channel-nestjs": "^0.0.1",
-    "@innerlife/channel-weixin": "^0.0.1",
+    "@innerlife/channel-weixin": "^0.0.2",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",

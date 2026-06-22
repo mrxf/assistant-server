@@ -9,20 +9,20 @@ importers:
   .:
     dependencies:
       '@innerlife/agent':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
       '@innerlife/channel':
         specifier: ^0.0.1
         version: 0.0.1
       '@innerlife/channel-engine-adapter':
-        specifier: ^0.0.1
-        version: 0.0.1
+        specifier: ^0.0.2
+        version: 0.0.2
       '@innerlife/channel-nestjs':
         specifier: ^0.0.1
         version: 0.0.1(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)
       '@innerlife/channel-weixin':
-        specifier: ^0.0.1
-        version: 0.0.1
+        specifier: ^0.0.2
+        version: 0.0.2
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -43,7 +43,7 @@ importers:
         version: 11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26)
       '@nestjs/swagger':
         specifier: ^8.0.0
-        version: 8.1.1(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
+        version: 8.1.1(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.26)(reflect-metadata@0.2.2)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@prisma/client':
         specifier: ^6.0.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
@@ -164,11 +164,11 @@ packages:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
 
-  '@innerlife/agent@0.1.1':
-    resolution: {integrity: sha512-HOefGe+UqmA9m0BSo0WyN1R/3dt3QHJ95C3f6I3h/Of3h1cmcOs2p3lqlpxIMdN3cpnZ5UzO3oju+xIyY3rMtw==}
+  '@innerlife/agent@0.1.2':
+    resolution: {integrity: sha512-B8tVcgsjP8j6jqNZzhB2NvCO+VXbWQqSjKkElY+APPopdHX7aBikr0VeHiZXXd7unt4TWzyVS1qSfnpm9fIJmg==}
 
-  '@innerlife/channel-engine-adapter@0.0.1':
-    resolution: {integrity: sha512-+g8l7ISjI4I488AjjvN0fTaZnEGeeMlgg5p53jQn3LCCiL78ywcdhEF4EeXmDWJWvTKJiyIILmdHNZdGi0UZrg==}
+  '@innerlife/channel-engine-adapter@0.0.2':
+    resolution: {integrity: sha512-3xmX7G/7gcsBz41LxapDWMHgf0faB7k8Zs5XHp/ti1OJ1gF5K5IshWR5+QjHH3XQ/pFPXX+h9/xRV+eo0I9Jrw==}
     engines: {node: '>=22'}
 
   '@innerlife/channel-nestjs@0.0.1':
@@ -178,8 +178,8 @@ packages:
       '@nestjs/common': '>=10.0.0'
       reflect-metadata: '>=0.2.0'
 
-  '@innerlife/channel-weixin@0.0.1':
-    resolution: {integrity: sha512-9Wtceo65mupIhfNxyOMetOst9+SSI7mlmdefOCW3v6yJXd1lOLs7CibiRC1uoC1M9OEMAxV8+D4mQZKUnUP7kw==}
+  '@innerlife/channel-weixin@0.0.2':
+    resolution: {integrity: sha512-Q4tp0+D/BK5DyuMoWsZl1tJdg2Fr10VgFRLZyYyCV3Iae2J3AwAzwWEIsPS0v5qUEvZy03sQ+a9RIDGwGPQJXw==}
     engines: {node: '>=22'}
 
   '@innerlife/channel@0.0.1':
@@ -1929,7 +1929,7 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@innerlife/agent@0.1.1':
+  '@innerlife/agent@0.1.2':
     dependencies:
       '@anthropic-ai/sdk': 0.77.0(zod@4.4.3)
       gray-matter: 4.0.3
@@ -1939,7 +1939,7 @@ snapshots:
     transitivePeerDependencies:
       - ws
 
-  '@innerlife/channel-engine-adapter@0.0.1':
+  '@innerlife/channel-engine-adapter@0.0.2':
     dependencies:
       '@innerlife/channel': 0.0.1
 
@@ -1949,7 +1949,7 @@ snapshots:
       '@nestjs/common': 11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       reflect-metadata: 0.2.2
 
-  '@innerlife/channel-weixin@0.0.1':
+  '@innerlife/channel-weixin@0.0.2':
     dependencies:
       '@innerlife/channel': 0.0.1
 
@@ -2232,7 +2232,7 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@nestjs/swagger@8.1.1(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)':
+  '@nestjs/swagger@8.1.1(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.26)(reflect-metadata@0.2.2)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)':
     dependencies:
       '@microsoft/tsdoc': 0.15.1
       '@nestjs/common': 11.1.26(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
