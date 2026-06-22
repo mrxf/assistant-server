@@ -5,6 +5,8 @@ import { AgentModule } from '../agent/agent.module';
 import { AgentPoolService } from '../agent/agent-pool.service';
 import { AgentRunnerService } from '../agent/agent-runner.service';
 import { PrismaAccountStorage } from '../channel/prisma-account-storage';
+import { MemoryImportModule } from '../memory-import/memory-import.module';
+import { MemoryImportService } from '../memory-import/memory-import.service';
 import { ChannelBindingService } from './channel-binding.service';
 import { ChannelOutboxService } from './channel-outbox.service';
 import { WechatBindController } from './wechat-bind.controller';
@@ -30,18 +32,20 @@ export class WechatProvidersModule {}
   imports: [
     AgentModule,
     WechatProvidersModule,
+    MemoryImportModule,
     ChannelModule.forRootAsync({
-      imports: [WechatProvidersModule, AgentModule],
-      inject: [PrismaAccountStorage, AgentPoolService, AgentRunnerService, ChannelBindingService],
+      imports: [WechatProvidersModule, AgentModule, MemoryImportModule],
+      inject: [PrismaAccountStorage, AgentPoolService, AgentRunnerService, ChannelBindingService, MemoryImportService],
       useFactory: (
         storage: PrismaAccountStorage,
         pool: AgentPoolService,
         runner: AgentRunnerService,
         binding: ChannelBindingService,
+        memoryImport: MemoryImportService,
       ) => ({
         channels: [weixin()],
         storage,
-        engine: buildWeixinEngine({ pool, runner, binding }),
+        engine: buildWeixinEngine({ pool, runner, binding, memoryImport }),
       }),
     }),
   ],

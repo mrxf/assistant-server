@@ -97,7 +97,27 @@ export class PlayerMemoryStore implements CanonicalStore {
       updatedAt: r.updatedAt.getTime(),
       sourceTickId: '',
       confidence: r.importance,
+      scope: this.inferFactScope(r.key, r.category),
     };
+  }
+
+  /**
+   * 从 key/category 推断事实的可见性范围。
+   * 数据库不持久化 scope，每次读取时重建——与框架 inferSemanticMemoryScope 逻辑一致。
+   * 确保非 actor_profile 类别的事实不会因 legacy_unknown 策略被过滤。
+   */
+  private inferFactScope(key: string, category: string) {
+    if (category === 'self' || key.startsWith('self.')) {
+      return { type: 'self' as const };
+    }
+    const match = /^actor:([^:]+):/.exec(key);
+    if (match) {
+      return { type: 'actor' as const, actorId: match[1] };
+    }
+    if (category === 'world' || category === 'global') {
+      return { type: 'global' as const };
+    }
+    return { type: 'actor' as const, actorId: this.playerId };
   }
 
   private rowToEpisodeRecord(r: any): EpisodeRecord {

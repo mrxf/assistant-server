@@ -3,11 +3,13 @@ import { createInnerlifeEngine, type InnerlifeEngine } from '@innerlife/channel-
 import { AgentPoolService } from '../agent/agent-pool.service';
 import { AgentRunnerService } from '../agent/agent-runner.service';
 import { ChannelBindingService } from './channel-binding.service';
+import type { MemoryImportService } from '../memory-import/memory-import.service';
 
 export interface WeixinEngineDeps {
   pool: AgentPoolService;
   runner: AgentRunnerService;
   binding: ChannelBindingService;
+  memoryImport?: MemoryImportService;
   concurrency?: number;
   /** Normal sliding quiet-period (ms). Default 2500 for WeChat. */
   debounceMs?: number;
@@ -29,8 +31,21 @@ export function buildWeixinEngine(deps: WeixinEngineDeps): InnerlifeEngine {
 
   return createInnerlifeEngine({
     runner: {
-      run: (_agent, ctx) => {
+      run: async (_agent, ctx) => {
         if (!ctx?.source) throw new Error('weixin engine: run() missing source (playerId)');
+
+        if (deps.memoryImport) {
+          const inbox = _agent.inbox as any;
+          const event = typeof inbox.peek === 'function' ? inbox.peek() : null;
+          if (event?.text) {
+            const result = await deps.memoryImport.intercept(ctx.source, event.text);
+            if (result.handled) {
+              if (typeof inbox.dequeue === 'function') inbox.dequeue();
+              return { dialogue: result.reply ?? '' };
+            }
+          }
+        }
+
         return deps.runner.runPreparedTurn(ctx.source);
       },
     },
