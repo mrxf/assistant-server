@@ -14,6 +14,9 @@ model Player {
   nickname     String   @default("")
   birthday     String?
   customFields String   @default("{}")
+  // #新对话 / #new 指令的边界：仅 turnIndex 严格大于此值的对话历史才会注入模型 prompt。
+  // 0 表示从未开启过新对话，全部历史可见。长期记忆/情绪/关系不受影响，前端历史列表也照常全量展示。
+  dialogueResetTurnIndex Int   @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -127,6 +130,9 @@ model ChannelAccount {
   channelId String
   accountId String
   data      String // JSON: { token, baseUrl, userId, contextTokens }
+  // 会话过期（needs-login）后置为 true：list() 不再返回该账户，下次启动不再轮询/校验。
+  // 重新登录会通过 save() 复位为 false，自动恢复。
+  disabled  Boolean  @default(false)
   updatedAt DateTime @updatedAt
 
   @@id([channelId, accountId])

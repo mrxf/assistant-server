@@ -4,12 +4,14 @@ import { AgentPoolService } from '../agent/agent-pool.service';
 import { AgentRunnerService } from '../agent/agent-runner.service';
 import { ChannelBindingService } from './channel-binding.service';
 import type { MemoryImportService } from '../memory-import/memory-import.service';
+import type { ConversationResetService } from '../conversation/conversation-reset.service';
 
 export interface WeixinEngineDeps {
   pool: AgentPoolService;
   runner: AgentRunnerService;
   binding: ChannelBindingService;
   memoryImport?: MemoryImportService;
+  conversationReset?: ConversationResetService;
   concurrency?: number;
   /** Normal sliding quiet-period (ms). Default 2500 for WeChat. */
   debounceMs?: number;
@@ -34,13 +36,34 @@ export function buildWeixinEngine(deps: WeixinEngineDeps): InnerlifeEngine {
       run: async (_agent, ctx) => {
         if (!ctx?.source) throw new Error('weixin engine: run() missing source (playerId)');
 
-        if (deps.memoryImport) {
+        // 指令拦截：#新对话/#new 优先，再到 #记忆导入。命中即把确认语作为回复直接发回微信
+        // （ChannelHost 会自动 send），让用户/客户端知道指令是否生效，不进入模型对话。
+        if (deps.conversationReset || deps.memoryImport) {
           const inbox = _agent.inbox as any;
           const event = typeof inbox.peek === 'function' ? inbox.peek() : null;
           if (event?.text) {
-            const result = await deps.memoryImport.intercept(ctx.source, event.text);
+            const resetResult = deps.conversationReset
+              ? await deps.conversationReset.intercept(ctx.source, event.text)
+              : { handled: false as const };
+            const result = resetResult.handled
+              ? resetResult
+              : deps.memoryImport
+                ? await deps.memoryImport.intercept(ctx.source, event.text)
+                : { handled: false as const };
             if (result.handled) {
-              if (typeof inbox.dequeue === 'function') inbox.dequeue();
+              // 命中指令：清空整个 inbox，而不是只 dequeue 一条。
+              // peek() 不出队、dequeue() 只移除最高优先级的一条；若 inbox 里还有残留事件，
+              // engine-adapter 的 `while(!inbox.isEmpty())` 会再跑一次 runOnce 落到
+              // runPreparedTurn（真正的模型轮次）——既"击穿"了指令拦截，又会再点亮一次
+              // 无法随本轮关闭的"正在输入"。清空 inbox 即可杜绝。
+              const leftover = typeof inbox.size === 'function' ? inbox.size() : 0;
+              if (typeof inbox.clear === 'function') inbox.clear();
+              else if (typeof inbox.dequeue === 'function') inbox.dequeue();
+              if (leftover > 1) {
+                log.warn(
+                  `指令命中，已清空 inbox 防止击穿：丢弃残留事件 ${leftover - 1} 条 (source=${ctx.source})`,
+                );
+              }
               return { dialogue: result.reply ?? '' };
             }
           }

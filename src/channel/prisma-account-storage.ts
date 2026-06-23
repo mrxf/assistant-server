@@ -12,8 +12,9 @@ export class PrismaAccountStorage implements AccountStorage {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(channelId: string): Promise<string[]> {
+    // 跳过被标记 disabled 的账户：会话过期(needs-login)后不再加载，下次启动也不再轮询/校验。
     const rows = await this.prisma.channelAccount.findMany({
-      where: { channelId },
+      where: { channelId, disabled: false },
       select: { accountId: true },
     });
     return rows.map((r) => r.accountId);
@@ -34,15 +35,27 @@ export class PrismaAccountStorage implements AccountStorage {
 
   async save(channelId: string, accountId: string, data: unknown): Promise<void> {
     const json = JSON.stringify(data ?? {});
+    // 重新登录会再次 save 新凭据：顺带复位 disabled，让此前过期被禁用的账户自动恢复。
     await this.prisma.channelAccount.upsert({
       where: { channelId_accountId: { channelId, accountId } },
       create: { channelId, accountId, data: json },
-      update: { data: json },
+      update: { data: json, disabled: false },
     });
   }
 
   async delete(channelId: string, accountId: string): Promise<void> {
     await this.prisma.channelAccount.deleteMany({ where: { channelId, accountId } });
+  }
+
+  /**
+   * 标记账户为禁用（会话过期 / needs-login）。下次 `list()` 不再返回它，
+   * 因此服务端重启后不会再为该账户启动轮询。重新登录（save）会复位。
+   */
+  async markDisabled(channelId: string, accountId: string): Promise<void> {
+    await this.prisma.channelAccount.updateMany({
+      where: { channelId, accountId },
+      data: { disabled: true },
+    });
   }
 }
 

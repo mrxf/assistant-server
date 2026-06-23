@@ -54,8 +54,14 @@ export class PlayerDialogueStore implements DialogueStore {
   }
 
   async query(q: DialogueQuery): Promise<DialogueEntry[]> {
+    // #新对话 / #new 的边界：只有 turnIndex 严格大于边界的历史才注入 prompt。
+    // 老数据不删除（前端历史照常全量展示），仅在「喂给模型的上下文」这一层被屏蔽。
+    const resetTurnIndex = await this.getResetTurnIndex();
     const rows = await this.prisma.dialogueEntry.findMany({
-      where: { playerId: this.playerId },
+      where: {
+        playerId: this.playerId,
+        ...(resetTurnIndex > 0 ? { turnIndex: { gt: resetTurnIndex } } : {}),
+      },
       orderBy: { createdAt: 'desc' },
       take: q.limit ?? 40,
     });
@@ -104,5 +110,14 @@ export class PlayerDialogueStore implements DialogueStore {
       select: { turnIndex: true },
     });
     return latest?.turnIndex ?? 0;
+  }
+
+  /** 读取当前玩家的「新对话边界」turnIndex（未设置时为 0）。 */
+  private async getResetTurnIndex(): Promise<number> {
+    const player = await this.prisma.player.findUnique({
+      where: { id: this.playerId },
+      select: { dialogueResetTurnIndex: true },
+    });
+    return player?.dialogueResetTurnIndex ?? 0;
   }
 }

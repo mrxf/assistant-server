@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import type { Response } from 'express';
 import { ChatService } from './chat.service';
 import { MemoryImportService } from '../memory-import/memory-import.service';
+import { ConversationResetService } from '../conversation/conversation-reset.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { ChatHistoryQueryDto } from './dto/chat-history.dto';
 
@@ -13,6 +14,7 @@ export class ChatController {
   constructor(
     private readonly chatService: ChatService,
     private readonly memoryImport: MemoryImportService,
+    private readonly conversationReset: ConversationResetService,
   ) {}
 
   @Post('send')
@@ -28,7 +30,12 @@ export class ChatController {
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
 
-    const commandResult = await this.memoryImport.intercept(playerId, dto.content);
+    // 指令拦截：#新对话/#new 优先（让用户能随时跳出记忆导入等待态），再到 #记忆导入。
+    // 命中任一指令即直接通过 SSE 返回 reply，不进入模型对话流程。
+    const resetResult = await this.conversationReset.intercept(playerId, dto.content);
+    const commandResult = resetResult.handled
+      ? resetResult
+      : await this.memoryImport.intercept(playerId, dto.content);
     if (commandResult.handled) {
       if (commandResult.reply) {
         const chunks = this.splitDialogue(commandResult.reply);
